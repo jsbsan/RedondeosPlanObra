@@ -1,0 +1,172 @@
+' Gambas module file
+
+Public PEMSuma As Float
+Public PorGG As Float
+Public PorBI As Float
+Public PorIVA As Float
+
+Public GastosBI As Float
+Public GastosGenerales As Float
+Public GastosIVA As Float
+Public GastosPorEjecucionContrata As Float
+Public PresupuestoPEMmasGGmasBI As Float
+Public MensualesAleatorios As New Float[36] 'Limitado a 36 meses de ejecucion
+Public MensualActualOriginal As New Float[36] 'guarda el valor del mes antes de modificarlo en el recalculo
+
+Public Sub BuscamosSoluciones(pem As Float, gg As Integer, bi As Integer, iva As Integer, cantidades As Float[], iGastosGenerales As Float, iGastosBI As Float, iPresupuestoPEMmasGGmasBI As Float, iGastosIVA As Float, iGastosPorEjecucionContrata As Float)
+  'creo matriz de datos
+
+  Dim Mensuales As New Float[36, 6] 'Limitado a 36 meses de ejecucion
+  Dim dato As Float
+  Dim a, b As Integer
+  Dim SumaMensuales As Float
+  Dim Contador As Integer = 0
+
+  Dim repite As Integer
+
+  PEMSuma = pem
+  PorGG = gg
+  PorBI = bi
+  PorIVA = iva
+
+  GastosBI = iGastosBI
+  GastosGenerales = iGastosGenerales
+  GastosIVA = iGastosiva
+
+  PresupuestoPEMmasGGmasBI = iPresupuestoPEMmasGGmasBI
+  GastosPorEjecucionContrata = iGastosPorEjecucionContrata
+
+  MensualActualOriginal = cantidades
+
+  For a = 0 To cantidades.Max
+    dato = cantidades[a]
+    For b = 0 To 5
+      mensuales[a, b] = cantidades[a] - 0.03 + b / 100 'margen de -0.03 a 0.03
+    Next
+  Next
+
+  'modo aleatorio
+  Randomize
+
+  For a = 1 To 10000000000
+
+    'aleatorio en la matriz elegida
+    For b = 0 To cantidades.Max
+      MensualesAleatorios[b] = Mensuales[b, Int(Rnd(0, 6))]
+
+    Next
+    'calculos datos
+
+    SumaMensuales = Suma(MensualesAleatorios)
+    If pem = SumaMensuales Then
+      'la suma PEM es correcta...
+      contador += 1
+
+      If Comprobacion(MensualesAleatorios) Then
+        Print "Pruebas Completas realizas:"; Contador, " pruebas parciales:"; a
+        Print "Valores Mensuales Encontrados"; "\n"
+        For repite = 0 To cantidades.Max
+          Print PresentarDatosNumericosConPuntos(30, "Mes[" & (repite + 1) & "]=", Format$(MensualesAleatorios[repite], "$,#.#0"), "."); " "; PresentarDatosNumericosConPuntos(30, "Mes Original:", Format$(MensualActualOriginal[repite], "$,#.#0"), "."); " "; "Diferencia (orignal-calculado):"; Format$(- (MensualActualOriginal[repite] - MensualesAleatorios[repite]), " $0,.#0")
+
+        Next
+        Print "\n"
+        Break
+      Endif
+
+    Endif
+
+  Next
+
+  mensuales.Clear()
+
+End
+
+Public Function Suma(valores As Float[]) As Float
+
+  Dim a As Integer
+  Dim total As Float = 0
+
+  For a = 0 To valores.Max
+    total += valores[a]
+  Next
+
+  Return total
+
+End
+
+Public Function Comprobacion(Mensuales As Float[]) As Boolean
+  'comprobar sumas de GG
+
+  Dim a As Integer
+
+  Dim sumaGG As Float
+  Dim sumaBi As Float
+  Dim sumaIva As Float
+  Dim sumaSubtotales As Float
+  'comprobando Sumas De Gastos Generales
+  For a = 0 To mensuales.Max
+    sumaGG += Round(mensuales[a] * porgg / 100, -2)
+  Next
+  If sumaGG >= (GastosGenerales - 0.0049) And (sumaGG <= (GastosGenerales + 0.0049)) Then
+    'Print "Gastos Generales OK"
+  Else
+    Return False
+  Endif
+
+  'comprobando Sumas De Beneficio Industrial
+  For a = 0 To mensuales.Max
+    sumaBI += Round(mensuales[a] * porbi / 100, -2)
+  Next
+  If sumaBi >= (GastosBI - 0.0049) And sumaBi <= (GastosBI + 0.0049) Then
+    'Print "Gastos Gastos Generales y  Beneficio Industrial OK"
+  Else
+    Return False
+  Endif
+
+  'comprobando Sumas IVA
+  For a = 0 To mensuales.Max
+    sumaIVA += Round((Round(mensuales[a] * (porGG / 100), -2) + Round(mensuales[a] * (porBI / 100), -2) + mensuales[a]) * (porIVA / 100), -2)
+    'Print "mes:"; a, sumaiva
+  Next
+  '   Print sumaiva, GastosIVA
+  If sumaIVA >= (GastosIVA - 0.004) And sumaIVA <= (GastosIVA + 0.004) Then
+    Print "Gastos IVA OK"
+  Else
+    Return False
+  Endif
+
+  'comprueba suma total
+  sumaSubtotales = sumaBi + sumaGG + sumaIva + Suma(mensuales)
+  If sumaSubtotales >= (GastosPorEjecucionContrata - 0.004) And sumaSubtotales <= (GastosPorEjecucionContrata + 0.004) Then
+    Print "Suma Parciales:"
+    Print PresentarDatosNumericosConPuntos(40, "Comprobacion GG:", Format$(sumaGG, "$,#.#0"), ".")
+    Print PresentarDatosNumericosConPuntos(40, "Comprobacion BI:", Format$(sumaBI, "$,#.#0"), ".")
+
+    Print PresentarDatosNumericosConPuntos(40, "Comprobacion Iva:", Format$(sumaiva, "$,#.#0"), ".")
+    Print PresentarDatosNumericosConPuntos(80, "Sumas Totales y Ejecucion Por Contrata:", Format(sumaBi + sumaGG + sumaIva + Suma(mensuales), "$,#.#0"), "."), "[Comprobacion]:"; Format(GastosPorEjecucionContrata, "$,#.#0")
+
+    Print "Resultado encontrado!!"
+  Else
+    Return False
+  Endif
+
+  Return True
+
+End
+
+Public Function PresentarDatosNumericosConPuntos(numeroPuntos As Integer, Texto As String, DatoFormateado As String, caracter As String) As String
+
+  Dim cadena As String
+  Dim espacios As String
+
+  espacios = Space$(numeroPuntos - String.Len(texto) - String.Len(DatoFormateado))
+
+  If IsNull(caracter) Then
+    cadena = texto & espacios & DatoFormateado
+  Else
+    cadena = texto & Replace(espacios, " ", caracter) & DatoFormateado
+  Endif
+
+  Return cadena
+
+End

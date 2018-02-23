@@ -1,0 +1,180 @@
+' Gambas module file
+
+'
+' RedondeosPlanObra
+' Ajuste de mensualidades para calculo parciales redondeados a 2 decimales, teniendo en cuenta GG, BI e IVA
+'
+' Copyright (C) jsbsan
+'
+' This program is free software; you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation; either version 2 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU General Public License for more details.
+'
+' You should have received a copy of the GNU General Public License
+' along with this program; if not, write to the Free Software
+' Foundation, Inc., 51 Franklin St, Fifth Floor,
+' Boston, MA  02110-1301  USA
+'
+
+Public Sub Main()
+
+  Dim cadena As String[]
+  Dim a As Integer
+
+  Print "Vesion..", Application.Version
+  Print "Argumentos...."
+  Print Args.Count
+  cadena = Args.All
+
+  For a = 0 To cadena.Max
+    Print "Argumento: "; a; ":", cadena[a]
+  Next
+
+  If cadena.max < 1 Then
+    Print "Falta fichero de datos como argumento...."
+    Print "Composicion del fichero de datos:"
+    Print composicion()
+    Quit
+  Endif
+
+  analisis(cadena[1])
+
+End
+
+Public Sub analisis(NombreFichero As String)
+
+  Dim contenido As String
+  Dim lineas As String[]
+
+  Dim PEMSuma As Float
+  Dim PorGG As Float
+  Dim PorBI As Float
+  Dim PorIVA As Float
+
+  Dim GastosBI As Float
+  Dim GastosGenerales As Float
+  Dim GastosIVA As Float
+  Dim GastosPorEjecucionContrata As Float
+  Dim PresupuestoPEMmasGGmasBI As Float
+  Dim Mensualidades As Float[]
+
+  contenido = File.Load(NombreFichero)
+
+  Print "---------------------------------------------"
+  Print "Contenido del Fichero de datos:"
+  Print "---------------------------------------------"
+
+  Print contenido
+
+  lineas = Split(contenido, "\n")
+
+  Print "Lineas fichero datos: ", Lineas.COUNT
+  Print "---------------------------------------------"
+  'Nota:
+
+  'la primera linea contienne las candidades mensuales en PEM
+  'la segunda linea la suma total que debe de dar en PEM
+  'la tercera linea el % gg
+  'la cuarta linea el % bi
+  'la quinta linea el % iva
+
+  Mensualidades = Valores(Split(lineas[0], gb.Tab))
+
+  try PEMSuma = Val(lineas[1])
+  if error then 
+    'cambio coma por punto decimal
+    PEMSuma = Val(replace(lineas[1],",","."))
+  endif
+  
+  
+  PorGG = Val(lineas[2])
+  PorBI = Val(lineas[3])
+  PorIVA = Val(lineas[4])
+
+  'CANTIDADES OBJETIVO:
+  GastosGenerales = Round(PEMSuma * PorGG / 100, -2)
+  GastosBI = Round(PEMSuma * PorBI / 100, -2)
+  PresupuestoPEMmasGGmasBI = PEMSuma + GastosGenerales + GastosBI
+  GastosIVA = Round((GastosGenerales + GastosBI + PEMSuma) * PorIVA / 100, -2)
+  GastosPorEjecucionContrata = GastosGenerales + GastosBI + GastosIVA + pemsuma
+
+  Print "Cantidades Objetivo...."
+  Print PresentarDatosNumericosConPuntos(60, "PEM:", Format(pemsuma, "$,#.###"), ".")
+
+  Print PresentarDatosNumericosConPuntos(60, "Gastos Generales [PEM  X %GG (" & PorGG & ")]:", Format(GastosGenerales, "$,#.###"), ".")
+
+  Print PresentarDatosNumericosConPuntos(60, "Beneficio Industrial [PEM X %BI (" & PorBI & ")]:", Format(GastosBI, "$,#.###"), ".")
+
+  Print PresentarDatosNumericosConPuntos(60, "Presupuesto(pem + gg+ bi):", Format(PresupuestoPEMmasGGmasBI, "$,#.###"), ".")
+
+  Print PresentarDatosNumericosConPuntos(60, "IVA (" & PorIVA & "): ", Format(GastosIVA, "$,#.###"), ".")
+
+  Print PresentarDatosNumericosConPuntos(60, "Presupuesto Por Ejecucion Contrata:", Format(GastosPorEjecucionContrata, "$,#.###"), ".")
+
+  'trabajo a realizar:
+  '-sumas parciales por cada mes, debe de sumar lo mismo que las cantidades "objetivo"
+  Print "\n"
+  ModuleSecundario.BuscamosSoluciones(pemsuma, porgg, PorBI, PorIVA, Mensualidades, GastosGenerales, GastosBI, PresupuestoPEMmasGGmasBI, GastosIVA, GastosPorEjecucionContrata)
+
+End
+
+Public Function PresentarDatosNumericosConPuntos(numeroPuntos As Integer, Texto As String, DatoFormateado As String, Optional caracter As String) As String
+
+  Dim cadena As String
+  Dim espacios As String
+
+  espacios = Space$(numeroPuntos - String.Len(texto) - String.Len(DatoFormateado))
+
+  If IsNull(caracter) Then
+    cadena = texto & espacios & DatoFormateado
+  Else
+    cadena = texto & Replace(espacios, " ", caracter) & DatoFormateado
+  Endif
+
+  Return cadena
+
+End
+
+Public Function composicion() As String
+
+  Dim ayuda As String
+
+  ayuda &= "---------------------------------------" & "\n"
+  ayuda &= "-    Ayuda del fichero de datos       -" & "\n"
+  ayuda &= "---------------------------------------" & "\n"
+  ayuda &= "la primera linea contiene las candidades mensuales en PEM, separados por un Tabulador" & "\n"
+  ayuda &= "la segunda linea la suma total que debe de dar el PEM (suma de las cantidades mensuales anteriores)" & "\n"
+  ayuda &= "la tercera linea el % Gastos Generales (GG), por ejemplo 16" & "\n"
+  ayuda &= "la cuarta linea el % Beneficio Industrial (BI), por ejemplo 6" & "\n"
+  ayuda &= "la quinta linea el % iva,por ejemplo 21" & "\n"
+
+  Return ayuda
+
+End
+
+Public Function Valores(ArrayCadena As String[]) As Float[]
+
+  Dim a As Integer
+  Dim ArrayValores As New Float[]
+
+  For a = 0 To ArrayCadena.max
+  try  ArrayValores.Add(Val(ArrayCadena[a]))
+  if error then 
+  'cambio la coma decimal a punto decimal
+  try  ArrayValores.Add(Val(replace(ArrayCadena[a],",",".")))
+  if error then 
+  Print "Error al leer datos y convertirlos en numero, dato:";ArrayCadena[a]
+  endif
+  endif
+  
+  Next
+
+  Return ArrayValores
+
+End
