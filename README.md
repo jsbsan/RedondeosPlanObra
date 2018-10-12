@@ -18,8 +18,13 @@ Nota:
 
 
 Estructura del fichero de datos:
+
   'la primera linea contienne las candidades mensuales en PEM
+  
   'la segunda linea la suma total que debe de dar en PEM
+  
   'la tercera linea el % gg
+  
   'la cuarta linea el % bi
+  
   'la quinta linea el % iva
