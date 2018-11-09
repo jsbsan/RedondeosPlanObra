@@ -13,10 +13,12 @@ Public PresupuestoPEMmasGGmasBI As Float
 Public MensualesAleatorios As New Float[36] 'Limitado a 36 meses de ejecucion
 Public MensualActualOriginal As New Float[36] 'guarda el valor del mes antes de modificarlo en el recalculo
 
+Public DifAdm As Float = 0.002 'antes 0.0049
+
 Public Sub BuscamosSoluciones(pem As Float, gg As Integer, bi As Integer, iva As Integer, cantidades As Float[], iGastosGenerales As Float, iGastosBI As Float, iPresupuestoPEMmasGGmasBI As Float, iGastosIVA As Float, iGastosPorEjecucionContrata As Float)
   'creo matriz de datos
 
-  Dim Mensuales As New Float[36, 6] 'Limitado a 36 meses de ejecucion
+  Dim Mensuales As New Float[36, 10] 'Limitado a 36 meses de ejecucion
   Dim dato As Float
   Dim a, b As Integer
   Dim SumaMensuales As Float
@@ -40,8 +42,8 @@ Public Sub BuscamosSoluciones(pem As Float, gg As Integer, bi As Integer, iva As
 
   For a = 0 To cantidades.Max
     dato = cantidades[a]
-    For b = 0 To 5
-      mensuales[a, b] = cantidades[a] - 0.03 + b / 100 'margen de -0.03 a 0.03
+    For b = 0 To 9 '0 a 5 -> 6  -> 0 a 3 -> 4 -0.02 a +0.02 ; 0-9 -.05 a +.05
+      mensuales[a, b] = cantidades[a] - 0.05 + b / 100 'margen de -0.03 a 0.03
     Next
   Next
 
@@ -52,7 +54,7 @@ Public Sub BuscamosSoluciones(pem As Float, gg As Integer, bi As Integer, iva As
 
     'aleatorio en la matriz elegida
     For b = 0 To cantidades.Max
-      MensualesAleatorios[b] = Mensuales[b, Int(Rnd(0, 6))]
+      MensualesAleatorios[b] = Mensuales[b, Int(Rnd(0, 9))]
 
     Next
     'calculos datos
@@ -107,8 +109,11 @@ Public Function Comprobacion(Mensuales As Float[]) As Boolean
   For a = 0 To mensuales.Max
     sumaGG += Round(mensuales[a] * porgg / 100, -2)
   Next
-  If sumaGG >= (GastosGenerales - 0.0049) And (sumaGG <= (GastosGenerales + 0.0049)) Then
-    'Print "Gastos Generales OK"
+
+  'Print "SumaGG:"; sumagg; "Suma Teorica:"; GastosGenerales
+
+  If sumaGG >= (GastosGenerales - DifAdm) And (sumaGG <= (GastosGenerales + DifAdm)) Then
+    ' Print "Gastos Generales OK"
   Else
     Return False
   Endif
@@ -117,8 +122,9 @@ Public Function Comprobacion(Mensuales As Float[]) As Boolean
   For a = 0 To mensuales.Max
     sumaBI += Round(mensuales[a] * porbi / 100, -2)
   Next
-  If sumaBi >= (GastosBI - 0.0049) And sumaBi <= (GastosBI + 0.0049) Then
+  If sumaBi >= (GastosBI - DifAdm) And sumaBi <= (GastosBI + DifAdm) Then
     'Print "Gastos Gastos Generales y  Beneficio Industrial OK"
+
   Else
     Return False
   Endif
@@ -129,15 +135,15 @@ Public Function Comprobacion(Mensuales As Float[]) As Boolean
     'Print "mes:"; a, sumaiva
   Next
   '   Print sumaiva, GastosIVA
-  If sumaIVA >= (GastosIVA - 0.004) And sumaIVA <= (GastosIVA + 0.004) Then
-    Print "Gastos IVA OK"
+  If sumaIVA >= (GastosIVA - DifAdm) And sumaIVA <= (GastosIVA + DifAdm) Then
+    'Print "Gastos IVA OK"
   Else
     Return False
   Endif
 
   'comprueba suma total
   sumaSubtotales = sumaBi + sumaGG + sumaIva + Suma(mensuales)
-  If sumaSubtotales >= (GastosPorEjecucionContrata - 0.004) And sumaSubtotales <= (GastosPorEjecucionContrata + 0.004) Then
+  If sumaSubtotales >= (GastosPorEjecucionContrata - DifAdm) And sumaSubtotales <= (GastosPorEjecucionContrata + DifAdm) Then
     Print "Suma Parciales:"
     Print PresentarDatosNumericosConPuntos(40, "Comprobacion GG:", Format$(sumaGG, "$,#.#0"), ".")
     Print PresentarDatosNumericosConPuntos(40, "Comprobacion BI:", Format$(sumaBI, "$,#.#0"), ".")

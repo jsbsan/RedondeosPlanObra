@@ -24,13 +24,28 @@
 
 Public Sub Main()
 
-  Dim cadena As String[]
+  Dim cadena As New String[]
   Dim a As Integer
 
   Print "Vesion..", Application.Version
   Print "Argumentos...."
   Print Args.Count
-  cadena = Args.All
+  Try cadena.Add(Args[0])
+  Try cadena.Add(Args[1])
+
+  If Error Then
+    Print "Error en argumenos"
+    Print Error.Text
+    Print Error.Where
+    Print Error.Backtrace
+    Quit
+  Endif
+
+  If Not Exist(Args[1]) Then
+    Print "Ruta donde se esta ejecutando la aplicacion: "; Application.Path
+    Print "No encuentro el archivo de datos: "; Args[1]
+    Quit
+  Endif
 
   For a = 0 To cadena.Max
     Print "Argumento: "; a; ":", cadena[a]
@@ -64,7 +79,14 @@ Public Sub analisis(NombreFichero As String)
   Dim PresupuestoPEMmasGGmasBI As Float
   Dim Mensualidades As Float[]
 
-  contenido = File.Load(NombreFichero)
+  Try contenido = File.Load(NombreFichero)
+  If Error Then
+    Print "Error en argumenos"
+    Print Error.Text
+    Print Error.Where
+    Print Error.Backtrace
+    Quit
+  Endif
 
   Print "---------------------------------------------"
   Print "Contenido del Fichero de datos:"
@@ -86,13 +108,12 @@ Public Sub analisis(NombreFichero As String)
 
   Mensualidades = Valores(Split(lineas[0], gb.Tab))
 
-  try PEMSuma = Val(lineas[1])
-  if error then 
+  Try PEMSuma = Val(lineas[1])
+  If Error Then
     'cambio coma por punto decimal
-    PEMSuma = Val(replace(lineas[1],",","."))
-  endif
-  
-  
+    PEMSuma = Val(Replace(lineas[1], ",", "."))
+  Endif
+
   PorGG = Val(lineas[2])
   PorBI = Val(lineas[3])
   PorIVA = Val(lineas[4])
@@ -103,7 +124,8 @@ Public Sub analisis(NombreFichero As String)
   PresupuestoPEMmasGGmasBI = PEMSuma + GastosGenerales + GastosBI
   GastosIVA = Round((GastosGenerales + GastosBI + PEMSuma) * PorIVA / 100, -2)
   GastosPorEjecucionContrata = GastosGenerales + GastosBI + GastosIVA + pemsuma
-
+  Print "-> Suma de cantidades pasadas:", sumatorio(Mensualidades)
+  Print "--------------------------------------"
   Print "Cantidades Objetivo...."
   Print PresentarDatosNumericosConPuntos(60, "PEM:", Format(pemsuma, "$,#.###"), ".")
 
@@ -121,6 +143,18 @@ Public Sub analisis(NombreFichero As String)
   '-sumas parciales por cada mes, debe de sumar lo mismo que las cantidades "objetivo"
   Print "\n"
   ModuleSecundario.BuscamosSoluciones(pemsuma, porgg, PorBI, PorIVA, Mensualidades, GastosGenerales, GastosBI, PresupuestoPEMmasGGmasBI, GastosIVA, GastosPorEjecucionContrata)
+
+End
+
+Public Sub sumatorio(v As Float[]) As Float
+
+  Dim suma As Float
+  Dim valor As Float
+
+  For Each valor In v
+    suma += valor
+  Next
+  Return suma
 
 End
 
@@ -164,15 +198,15 @@ Public Function Valores(ArrayCadena As String[]) As Float[]
   Dim ArrayValores As New Float[]
 
   For a = 0 To ArrayCadena.max
-  try  ArrayValores.Add(Val(ArrayCadena[a]))
-  if error then 
-  'cambio la coma decimal a punto decimal
-  try  ArrayValores.Add(Val(replace(ArrayCadena[a],",",".")))
-  if error then 
-  Print "Error al leer datos y convertirlos en numero, dato:";ArrayCadena[a]
-  endif
-  endif
-  
+    Try ArrayValores.Add(Val(ArrayCadena[a]))
+    If Error Then
+      'cambio la coma decimal a punto decimal
+      Try ArrayValores.Add(Val(Replace(ArrayCadena[a], ",", ".")))
+      If Error Then
+        Print "Error al leer datos y convertirlos en numero, dato:"; ArrayCadena[a]
+      Endif
+    Endif
+
   Next
 
   Return ArrayValores

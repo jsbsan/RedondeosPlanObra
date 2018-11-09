@@ -35,15 +35,15 @@ Geometry=[539,51,224,690]
 Geometry=[2650,106,224,762]
 
 [Executable]
-Path="/home/mint/RedondeosPlanObra.gambas"
+Path="RedondeosPlanObra.gambas"
 
 [OpenFile]
-File[1]=".src/Main.module:35.148"
-Active=1
-File[2]="misdatos.txt:10.1"
-Count=4
-File[3]=".src/ModuleSecundario.module:26.47"
+File[1]=".src/Main.module:9.84"
+File[2]="misdatos.txt:5.0"
+Active=3
+File[3]=".src/ModuleSecundario.module:5.164"
 File[4]="redondeo.png"
+Count=4
 
 [Watches]
 Count=0

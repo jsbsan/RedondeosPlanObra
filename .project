@@ -1,14 +1,13 @@
 # Gambas Project File 3.0
-# Compiled with Gambas 3.10.0
 Title=RedondeosPlanObra
 Startup=Main
 Icon=redondeo.png
-Version=0.0.11
+Version=0.0.29
 Component=gb.args
 Description="Ajuste de mensualidades para calculo parciales redondeados a 2 decimales, teniendo en cuenta GG, BI e IVA"
 Authors="jsbsan"
-Arguments=[["misdatos.txt"]]
-CurrentArgument=1
+Arguments=[["[[\"misdatos.txt\"]]"]]
+CurrentArgument=0
 TabSize=2
-Language=en_US
+SourcePath=/home/minino/Media/OS/00 descarga/calculo redondeos
 Packager=1

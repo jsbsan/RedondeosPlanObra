@@ -4,7 +4,7 @@
 Tipo de aplicacion: terminal o consola (sin entorno grafico)
 
 Uso de comando:
-$redondeos nombrefichero
+$./RedondeosPlanObra.gambas nombrefichero
 
 ¿que hace el programa?
 Ajusta las cantidades mensuales de PEM (variando los decimales), para que aplicando los redondeos de 2 decimales, en las operaciones intermedias (cálculo de gastos generales, beneficio industrial e iva), las sumas y los totales den correctamente.
@@ -28,3 +28,6 @@ Estructura del fichero de datos:
   'la cuarta linea el % bi
   
   'la quinta linea el % iva
+
+
+Para Gambas3, compilado para la version 3.11.4. Es posible recompilarlo para versiones inferiores de Gambas3.
