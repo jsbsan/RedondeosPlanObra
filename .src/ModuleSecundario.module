@@ -1,5 +1,7 @@
 ' Gambas module file
 
+Fast
+
 Public PEMSuma As Float
 Public PorGG As Float
 Public PorBI As Float
@@ -13,7 +15,7 @@ Public PresupuestoPEMmasGGmasBI As Float
 Public MensualesAleatorios As New Float[36] 'Limitado a 36 meses de ejecucion
 Public MensualActualOriginal As New Float[36] 'guarda el valor del mes antes de modificarlo en el recalculo
 
-Public DifAdm As Float = 0.002 'antes 0.0049
+Public DifAdm As Float = 0.001 'antes 0.0049
 
 Public Sub BuscamosSoluciones(pem As Float, gg As Integer, bi As Integer, iva As Integer, cantidades As Float[], iGastosGenerales As Float, iGastosBI As Float, iPresupuestoPEMmasGGmasBI As Float, iGastosIVA As Float, iGastosPorEjecucionContrata As Float)
   'creo matriz de datos

@@ -27,6 +27,8 @@ Public Sub Main()
   Dim cadena As New String[]
   Dim a As Integer
 
+  Randomize
+
   Print "Vesion..", Application.Version
   Print "Argumentos...."
   Print Args.Count
@@ -53,8 +55,10 @@ Public Sub Main()
 
   If cadena.max < 1 Then
     Print "Falta fichero de datos como argumento...."
+    Print "------------------------------------------"
     Print "Composicion del fichero de datos:"
     Print composicion()
+    Print "------------------------------------------"
     Quit
   Endif
 
@@ -95,7 +99,7 @@ Public Sub analisis(NombreFichero As String)
   Print contenido
 
   lineas = Split(contenido, "\n")
-
+  Print "---------------------------------------------"
   Print "Lineas fichero datos: ", Lineas.COUNT
   Print "---------------------------------------------"
   'Nota:
@@ -107,6 +111,8 @@ Public Sub analisis(NombreFichero As String)
   'la quinta linea el % iva
 
   Mensualidades = Valores(Split(lineas[0], gb.Tab))
+
+  Print "Numero de Mensualidades: "; mensualidades.max + 1
 
   Try PEMSuma = Val(lineas[1])
   If Error Then
